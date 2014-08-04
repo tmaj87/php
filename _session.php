@@ -12,15 +12,15 @@ function d() {
 class timer {
 	private $host = 'mysql:dbname=database;host=127.0.0.1', $user = 'admin', $pass = 'pass';
 	private static $seed = 'tiNRHu;M60QcHNoGjrMFLkSVKPTDRONu53zSb:2IYe2fkYVS.3v2c4J2runnyeTh';
-	private static $table = 'tmaj_';
+	private static $table = 'tmaj87_';
 	private static $dbh = null;
 	
 	private static function connect() {
 		try {
-			//self::$dbh = new PDO($host, $user, $pass);
-			self::$dbh = 1;
+			self::$dbh = new PDO($host, $user, $pass);
 		} catch (PDOException $e) {
-			self::error($e->getMessage());
+			self::$dbh = 1;
+			//self::error($e->getMessage());
 		}
 	}
 	
@@ -39,7 +39,8 @@ class timer {
 		
 		//$sql = "UPDATE ".self::$table." SET _out = ".time()." WHERE hash = $hash";
 		//return $this->dbh->exec($sql);
-		return 1;
+		
+		return 0;
 	}
 	
 	private static function is_connected() {
@@ -57,14 +58,10 @@ class timer {
 }
 
 class packet {
-	//private $id;
 	private $time;
 	private $data = array();
-	//private static $current_id = 1;
 	
 	public function __construct() {
-		//$this->id = self::$current_id++;
-		//$this->id = 1;
 		$this->time = time();
 	}
 	
@@ -77,7 +74,6 @@ class packet {
 	}
 	
 	public function get_meta_tags() {
-		//return array($this->id, $this->time);
 		return array($this->time);
 	}
 }
@@ -94,8 +90,19 @@ if (isset($_GET['1'])) {
 	
 	$_SESSION['the_array'][$count] = $packet;
 } elseif (isset($_GET['2'])) {
-	// jeżeli hash istnieje w bazie, dopisz time() zamknięcia strony
+	$hash = filter_input(INPUT_GET, 'h', FILTER_SANITIZE_STRING);
+	if (strlen($hash) == 64) {
+		foreach ($_SESSION['the_array'] as $k => $obj) {
+			if (!empty($obj) && $obj->hash == $hash) {
+				$_SESSION['the_array'][$k] = timer::finish($obj->hash);
+				break;
+			}
+		}
+	}
 	
+	foreach ($_SESSION['the_array'] as $k => $obj) {
+		echo '<p><a href="?2&h='.$obj->hash.'">'.$obj->hash.'</a></p>';
+	}
 	d($_SESSION['the_array']);
 } elseif (isset($_GET['3'])) {
 	unset($_SESSION['the_array']);
